@@ -1,30 +1,67 @@
-import {useState} from 'react'
+import React, { useState, useContext } from "react";
+import { MyContext } from "../App";
 
+interface Post {
+  title: string;
+  message: string;
+  dateTime: Date;
+}
 
-const Posts = () => { 
-    const [posts, setposts ] = useState ('');
-    
-    const fetchPosts = () => {
-         const storedPosts =localStorage.getItem('id');
+const Posts = () => {
+  const localstoragekeys = Object.keys(localStorage);
+  const posts: Post[] = [];
+  let user;
+  let sortedArray;
 
-         if (storedPosts){
-            setposts(storedPosts);
-         }
-         else{
-            alert('No Posts to show.');
-         }
-         }
-        
-    
-  return (
-     <div className='posts'>
-       <h1>Read Posts</h1>
-        <div>
-            {posts}
-        </div>
-        <button onClick={fetchPosts}>Open Article</button>
-     </div>
-  )
+  const fetchPosts = () => {
+    localstoragekeys.map((userId, index) => {
+      user = JSON.parse(localStorage.getItem(userId));
+      if (user) {
+        if (user.myPosts) {
+          user.myPosts.map((post: Post) => {
+            posts.push(post);
+          });
+        }
+      }
+    });
+  };
+
+  fetchPosts();
+
+  if (user.myPosts) {
+    sortedArray = posts.sort((a, b) => {
+      if (a.dateTime && b.dateTime) {
+        return new Date(b.dateTime) - new Date(a.dateTime);
+      } else if (a.dateTime) {
+        return -1; // Move objects with 'a' having dateTime to the front
+      } else if (b.dateTime) {
+        return 1; // Move objects with 'b' having dateTime to the front
+      } else {
+        return 0; // Keep the order unchanged if neither have dateTime
+      }
+    });
   }
 
-export default Posts
+  console.log(sortedArray);
+
+  return (
+    <div>
+      {user.myPosts ? (
+        <div>
+          {sortedArray?.map((post, index) => {
+            return (
+              <div key={index}>
+                <p>Title: {post.Title}</p>
+                <p>Message: {post.Message}</p>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div>No posts added</div>
+      )}
+    </div>
+  );
+};
+
+export default Posts;
